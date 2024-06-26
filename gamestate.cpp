@@ -1,65 +1,84 @@
 #include "gamestate.h"
-#include <cstring> // For std::memcpy
+#include <cmath>
+#include <iostream>
 
-GameState::GameState(int size, int player)
-    : boardSize(size), currentPlayer(player) {
+void GameState::deepCopy(GameState *copy) {
+    for (int i = 0; i < boardSize; i++) {
+        copy->getBoard()[i] = board[i];
+    }
+}
+
+GameState::GameState(int n, int player) {
+    player1 = 1;
+    player2 = 2;
+    currentPlayer = player;
+    boardSize = n;
     board = new int[boardSize];
-    std::memset(board, 0, sizeof(int) * boardSize); // Initialize board with 0s
+    for (int i = 0; i < boardSize; i++) {
+        board[i] = 0;
+    }
 }
 
 GameState::~GameState() {
-    delete[] board;
+    delete board;
 }
 
-int GameState::getBoardSize() const {
+void GameState::printBoard() {
+    int a = sqrt(boardSize);
+    for (int i = 0; i < a; i++) {
+        for (int j = 0; j < a; j++) {
+            if (board[a*i+j] == 0) {
+                std::cout << "  ";
+            }
+            else if (board[a*i+j] == 1) {
+                std::cout << "x ";
+            }
+            else if (board[a*i+j] == 2) {
+                std::cout << "o ";
+            }
+        }
+        std:: cout << "\n";
+    }
+}
+
+int GameState::otherPlayer(int currentPlayer) {
+    if (currentPlayer == player1) {
+        return player2;
+    }
+    else {
+        return player1;
+    }
+}
+
+void GameState::changePlayer() {
+    if (currentPlayer == player1) {
+        currentPlayer = player2;
+    }
+    else if (currentPlayer == player2) {
+        currentPlayer = player1;
+    }
+}
+
+void GameState::makeMove(int &move) {
+    board[move] = currentPlayer;
+    changePlayer();
+}
+
+int GameState::getBoardSize() {
     return boardSize;
 }
 
-int GameState::getCurrentPlayer() const {
+int* GameState::getBoard() {
+    return board;
+}
+
+int GameState::getCurrentPlayer() {
     return currentPlayer;
 }
 
-void GameState::setCurrentPlayer(int player) {
-    currentPlayer = player;
-}
-
-bool GameState::isValidMove(int move) const {
-    return move >= 0 && move < boardSize && board[move] == 0;
-}
-
-void GameState::makeMove(int move) {
-    if (isValidMove(move)) {
-        board[move] = currentPlayer;
-        currentPlayer = (currentPlayer == 1) ? 2 : 1; // Toggle between players
+void GameState::initiate() {
+    for (int i = 0; i < boardSize; i++) {
+        board[i] = 0;
     }
-}
-
-bool GameState::isGameOver() const {
-    for (int i = 0; i < boardSize; ++i) {
-        if (board[i] == 0) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool GameState::isGameWon() const {
-    return checkWinCondition();
-}
-
-void GameState::deepCopy(GameState* other) const {
-    other->boardSize = boardSize;
-    other->currentPlayer = currentPlayer;
-    std::memcpy(other->board, board, sizeof(int) * boardSize);
-}
-
-bool GameState::checkWinCondition() const {
-    // Implement the win condition check based on the game logic
-    // For simplicity, let's assume a linear win condition (e.g., consecutive elements)
-    for (int i = 0; i < boardSize - 2; ++i) {
-        if (board[i] != 0 && board[i] == board[i + 1] && board[i] == board[i + 2]) {
-            return true;
-        }
-    }
-    return false;
+    currentPlayer = player1;
 }
